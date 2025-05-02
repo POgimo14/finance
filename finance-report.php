@@ -16,6 +16,31 @@ require_once 'php/includes/add_audit.php'; // Audit log functions
 $student_id = 123;
 
 addAuditLog($pdo, 'DELETE', 'students', $student_id, 'Deleted student record.');
+
+
+// Database connection
+try {
+    $pdo = new PDO("mysql:host=localhost;port=3307;dbname=finance", "root", "");
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Database connection failed: " . $e->getMessage());
+}
+// fetch data from the database
+$stmt = $pdo->query("SELECT * FROM report ORDER BY id DESC LIMIT 1");
+$report = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$report) {
+    die("No report data found.");
+}
+$stmt = $pdo->query("SELECT * FROM pangalawa ORDER BY id DESC LIMIT 1");
+$pangalawa = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$pangalawa) {
+    die("No table data found.");
+}
+$stmt = $pdo->query("SELECT * FROM totals ORDER BY id DESC LIMIT 1");
+$totals = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$totals) {
+    die("No table data found.");
+}
 ?>
 
 <!DOCTYPE html>
@@ -68,65 +93,74 @@ addAuditLog($pdo, 'DELETE', 'students', $student_id, 'Deleted student record.');
             </nav>
             </nav>
         </aside>
-        <section class="content">
-            <div class="content-header">
-                <button class="js-sidenav-toggle" aria-label="Toggle navigation menu">
-                    <span class="mdi mdi-menu"></span>
-                </button>
-                <h3>Financial Report</h3>
+        <section class="content" style="padding: 1rem;">
+            <article class="module-content"></article>
+
+            <div class="tabs">
+                <div class="tab">Monthly</div>
+                <div class="tab">Annual</div>
             </div>
-            <article class="module-content">
-                <div class="finance">
-                    <div class="tabs">
-                        <div class="tab">Monthly</div>
-                        <div class="tab">Annual</div>
-                    </div>
-                    <div class="date-picker">
-                        <label for="from">From:</label>
-                        <input type="date" id="from" name="from">
-                        <label for="to">To:</label>
-                        <input type="date" id="to" name="to">
-                    </div>
 
-                    <div class="kpi-cards">
-                        <div class="card"><strong>Total Collected:</strong> ₱120,000</div>
-                        <div class="card"><strong>Total Due:</strong> ₱30,000</div>
-                        <div class="card"><strong>Total Scholarships Awarded:</strong> ₱50,000</div>
-                        <div class="card"><strong>Total Refunds:</strong> ₱10,000</div>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Month</th>
-                                <th>Collected</th>
-                                <th>Due</th>
-                                <th>Scholarships</th>
-                                <th>Refunds</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>January</td>
-                                <td>₱30,000</td>
-                                <td>₱5,000</td>
-                                <td>₱10,000</td>
-                                <td>₱2,000</td>
-                            </tr>
+            <div class="date-picker">
+                <label for="from">From:</label>
+                <input type="date" id="from" name="from">
+                <label for="to">To:</label>
+                <input type="date" id="to" name="to">
+            </div>
 
-                        </tbody>
-                    </table>
+            <div class="kpi-cards">
+                <?php if ($totals): ?>
+                <div class="card">Total Collected: ₱<?= number_format($totals['t.collected']) ?></div>
+                <div class="card">Total Due: ₱<?= number_format($totals['t.due']) ?></div>
+                <div class="card">Total Scholarships Awarded: ₱<?= number_format($totals['t.scholar']) ?></div>
+                <div class="card">Total Refunds: ₱<?= number_format($totals['t.refund']) ?></div>
+                <?php else: ?>
+                <div class="card">No data available</div>
+                <?php endif; ?>
+            </div>
 
-                    <div class="detail-view">
-                        <h3>Report Details</h3>
-                        <p><strong>Report Period:</strong> January 1 - January 31, 2025</p>
-                        <p><strong>Report Type:</strong> Monthly</p>
-                        <p><strong>Summary:</strong> Total transactions reviewed include collections, dues,
-                            scholarships,
-                            and refunds for the month of January.</p>
-                        <p><strong>Generated By:</strong> Finance Admin</p>
-                    </div>
-                </div>
-            </article>
+            <table>
+                <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Collected</th>
+                    <th>Due</th>
+                    <th>Scholarships</th>
+                    <th>Refunds</th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php if ($pangalawa): ?>
+                    <tr>
+                    <td><?= date("F", strtotime($pangalawa['month'])) ?></td>
+                    <td>₱ <?= number_format($pangalawa['collected']) ?></td>
+                    <td>₱ <?= number_format($pangalawa['due']) ?></td>
+                    <td>₱ <?= number_format($pangalawa['scholarship']) ?></td>
+                    <td>₱ <?= number_format($pangalawa['refund']) ?></td>
+                    </tr>
+                <?php else: ?>
+                    <tr>
+                    <td colspan="5">No data available</td>
+                    </tr>
+                <?php endif; ?>
+                </tbody>
+            </table>
+
+            <?php if ($report): ?>
+            <div class="detail-view">
+                <h3>Report Details</h3>
+                <p><strong>Report Period:</strong>
+                <?= date("F j, Y", strtotime($report['period_from'])) ?> - <?= date("F j, Y", strtotime($report['period_to'])) ?>
+                </p>
+                <p><strong>Report Type:</strong> <?= htmlspecialchars($report['report_type']) ?></p>
+                <p><strong>Summary:</strong> <?= nl2br(htmlspecialchars($report['summary'])) ?></p>
+                <p><strong>Generated By:</strong> <?= htmlspecialchars($report['generated_by']) ?></p>
+            </div>
+            <?php else: ?>
+            <div class="detail-view">
+                <p>No report data available.</p>
+            </div>
+            <?php endif; ?>
         </section>
     </main>
     <footer>
