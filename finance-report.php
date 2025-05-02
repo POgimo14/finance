@@ -112,7 +112,6 @@ if (!$totals) {
                 <?php if ($totals): ?>
                 <div class="card">Total Collected: ₱<?= number_format($totals['t.collected']) ?></div>
                 <div class="card">Total Due: ₱<?= number_format($totals['t.due']) ?></div>
-                <div class="card">Total Scholarships Awarded: ₱<?= number_format($totals['t.scholar']) ?></div>
                 <div class="card">Total Refunds: ₱<?= number_format($totals['t.refund']) ?></div>
                 <?php else: ?>
                 <div class="card">No data available</div>
@@ -125,18 +124,16 @@ if (!$totals) {
                     <th>Month</th>
                     <th>Collected</th>
                     <th>Due</th>
-                    <th>Scholarships</th>
                     <th>Refunds</th>
                 </tr>
                 </thead>
                 <tbody>
-                <?php if ($pangalawa): ?>
+                <?php if ($date): ?>
                     <tr>
-                    <td><?= date("F", strtotime($pangalawa['month'])) ?></td>
-                    <td>₱ <?= number_format($pangalawa['collected']) ?></td>
-                    <td>₱ <?= number_format($pangalawa['due']) ?></td>
-                    <td>₱ <?= number_format($pangalawa['scholarship']) ?></td>
-                    <td>₱ <?= number_format($pangalawa['refund']) ?></td>
+                    <td><?= date("F", strtotime($month['month'])) ?></td>
+                    <td>₱ <?= number_format($collected['collected']) ?></td>
+                    <td>₱ <?= number_format($due['due']) ?></td>
+                    <td>₱ <?= number_format($refdund['refund']) ?></td>
                     </tr>
                 <?php else: ?>
                     <tr>
